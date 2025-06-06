@@ -1,9 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class DeliveryManager : MonoBehaviour {
+public class DeliveryManager : NetworkBehaviour {
 
 
     public event EventHandler OnRecipeSpawned;
@@ -19,7 +20,7 @@ public class DeliveryManager : MonoBehaviour {
 
 
     private List<RecipeSO> waitingRecipeSOList;
-    private float spawnRecipeTimer;
+    private float spawnRecipeTimer = 4f;
     private float spawnRecipeTimerMax = 4f;
     private int waitingRecipesMax = 4;
     private int successfulRecipesAmount;
@@ -32,19 +33,33 @@ public class DeliveryManager : MonoBehaviour {
         waitingRecipeSOList = new List<RecipeSO>();
     }
 
-    private void Update() {
+    //Using RPC's the server generates the recipes. and then sends the "complete recipe" to every client.
+    private void Update() 
+    {
+        //Make it so the server is the only one generating the recipes:
+        if (!IsServer) { return; }
+        
         spawnRecipeTimer -= Time.deltaTime;
         if (spawnRecipeTimer <= 0f) {
             spawnRecipeTimer = spawnRecipeTimerMax;
 
-            if (KitchenGameManager.Instance.IsGamePlaying() && waitingRecipeSOList.Count < waitingRecipesMax) {
-                RecipeSO waitingRecipeSO = recipeListSO.recipeSOList[UnityEngine.Random.Range(0, recipeListSO.recipeSOList.Count)];
-
-                waitingRecipeSOList.Add(waitingRecipeSO);
-
-                OnRecipeSpawned?.Invoke(this, EventArgs.Empty);
+            if (KitchenGameManager.Instance.IsGamePlaying() && waitingRecipeSOList.Count < waitingRecipesMax) {                
+                int waitingRecipeSOIndex = UnityEngine.Random.Range(0, recipeListSO.recipeSOList.Count);
+                SpawnNewWaitingRecipeClientRpc(waitingRecipeSOIndex);
+                
             }
         }
+    }
+    [ClientRpc] //The RPC should also have it's name end with ClientRPC
+    //The bellow method is called from the server
+    //To
+    private void SpawnNewWaitingRecipeClientRpc(int waitingRecipeSOIndex )
+    {
+        RecipeSO waitingRecipeSO = recipeListSO.recipeSOList[waitingRecipeSOIndex];
+
+        waitingRecipeSOList.Add(waitingRecipeSO);
+        
+        OnRecipeSpawned?.Invoke(this, EventArgs.Empty);
     }
 
     public void DeliverRecipe(PlateKitchenObject plateKitchenObject) {
@@ -73,13 +88,8 @@ public class DeliveryManager : MonoBehaviour {
 
                 if (plateContentsMatchesRecipe) {
                     // Player delivered the correct recipe!
-
-                    successfulRecipesAmount++;
-
-                    waitingRecipeSOList.RemoveAt(i);
-
-                    OnRecipeCompleted?.Invoke(this, EventArgs.Empty);
-                    OnRecipeSuccess?.Invoke(this, EventArgs.Empty);
+                    DeliverCorrectRecipeServerRpc(i);
+                   
                     return;
                 }
             }
@@ -87,7 +97,39 @@ public class DeliveryManager : MonoBehaviour {
 
         // No matches found!
         // Player did not deliver a correct recipe
+        DeliverIncorrectRecipeServerRpc();
+    }
+    [ServerRpc(RequireOwnership = false)]
+    private void DeliverIncorrectRecipeServerRpc()
+    {
+        DeliverIncorrectRecipeClientRpc();
+    }
+    [ClientRpc]
+    private void DeliverIncorrectRecipeClientRpc()
+    {
         OnRecipeFailed?.Invoke(this, EventArgs.Empty);
+    }
+
+    //The client only sends the recipe delivery success message validating it client side.
+    //this code will ONLY run on the server. 
+    //After that the server has to broadcast to the clients that this behavor just happened
+    //The client will not know the recipe was delivered until the ClientRPC is called
+    [ServerRpc(RequireOwnership = false)]
+    private void DeliverCorrectRecipeServerRpc(int waitingRecipeSOListIndex)
+    {
+        DeliverCorrectRecipeClientRpc(waitingRecipeSOListIndex);
+    }
+    //BroadCast to all clients the updated state
+    [ClientRpc]
+    private void DeliverCorrectRecipeClientRpc(int waitingRecipeSOListIndex)
+    {
+        successfulRecipesAmount++;
+
+        waitingRecipeSOList.RemoveAt(waitingRecipeSOListIndex);
+
+        OnRecipeCompleted?.Invoke(this, EventArgs.Empty);
+        OnRecipeSuccess?.Invoke(this, EventArgs.Empty);
+
     }
 
     public List<RecipeSO> GetWaitingRecipeSOList() {
