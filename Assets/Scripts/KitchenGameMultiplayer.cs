@@ -22,6 +22,7 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     private void SpawnKitchenObjectServerRpc(int kitchenObjectSOIndex, NetworkObjectReference kitchenObjectParentNetworkObjectReference)
     {
         KitchenObjectSO kitchenObjectSO = GetKitchenObjectSOFromIndex(kitchenObjectSOIndex);
+        //Spawns object in server or if in Host mode, there too
         Transform kitchenObjectTransform = Instantiate(kitchenObjectSO.prefab);
 
         //Actually spawning it on the network:
@@ -38,6 +39,8 @@ public class KitchenGameMultiplayer : NetworkBehaviour
         //Access the IKitchenObjectParent component that was originally there:
         IKitchenObjectParent kitchenObjectParent = kitchenObjectParentNetworkObject.GetComponent<IKitchenObjectParent>();
 
+        //This code is only running on the server so only the Host will pick up objects:
+        //The parenting code wont run on clients 
         kitchenObject.SetKitchenObjectParent(kitchenObjectParent);
 
 

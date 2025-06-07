@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 1778288183289012027}
   - component: {fileID: -2611980362079915387}
   - component: {fileID: 2834930810448598238}
+  - component: {fileID: -8604054445732803508}
   m_Layer: 0
   m_Name: Cabbage
   m_TagString: Untagged
@@ -73,6 +74,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
   kitchenObjectSO: {fileID: 11400000, guid: eb5d66fe5fbe79b4da16b49136928aa4, type: 2}
+--- !u!114 &-8604054445732803508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 793094337483793349}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de2196ccbb8b8344e8ca25d17f3d0157, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &5236307960087815846
 PrefabInstance:
   m_ObjectHideFlags: 0

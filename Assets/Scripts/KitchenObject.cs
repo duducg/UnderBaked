@@ -10,13 +10,39 @@ public class KitchenObject : NetworkBehaviour {
 
 
     private IKitchenObjectParent kitchenObjectParent;
+    private FollowTransform followTransform;
 
-
+    protected virtual void Awake()
+    {
+        followTransform = GetComponent<FollowTransform>();
+    }
     public KitchenObjectSO GetKitchenObjectSO() {
         return kitchenObjectSO;
     }
 
-    public void SetKitchenObjectParent(IKitchenObjectParent kitchenObjectParent) {
+    //Local function calls ServerRpc
+    public void SetKitchenObjectParent(IKitchenObjectParent kitchenObjectParent)
+    {
+        SetKitchenParentServerRpc(kitchenObjectParent.GetNetworkObject());    
+    } 
+
+    //ServerRpc broadcasts this to all ClientRpc
+    [ServerRpc(RequireOwnership =false)]
+    private void SetKitchenParentServerRpc(NetworkObjectReference kitchenObjectParentNetworkObjectReference)
+    {
+        SetKitchenObjectParentClientRpc(kitchenObjectParentNetworkObjectReference);        
+    }
+
+    //ClientRpc recieves broadcast from server and synchs the parenting
+    [ClientRpc]
+    private void SetKitchenObjectParentClientRpc(NetworkObjectReference kitchenObjectParentNetworkObjectReference)
+    {
+        //First convert the NetworkObjectReference back to a NetworkObject
+        kitchenObjectParentNetworkObjectReference.TryGet(out NetworkObject kitchenObjectParentNetworkObject);
+
+        //Access the IKitchenObjectParent component that was originally there:
+        IKitchenObjectParent kitchenObjectParent = kitchenObjectParentNetworkObject.GetComponent<IKitchenObjectParent>();
+        
         if (this.kitchenObjectParent != null) {
             this.kitchenObjectParent.ClearKitchenObject();
         }
@@ -29,9 +55,10 @@ public class KitchenObject : NetworkBehaviour {
 
         kitchenObjectParent.SetKitchenObject(this);
 
-        // transform.parent = kitchenObjectParent.GetKitchenObjectFollowTransform();
-        // transform.localPosition = Vector3.zero;
+        followTransform.SetTargetTransform(kitchenObjectParent.GetKitchenObjectFollowTransform());
+
     }
+
 
     public IKitchenObjectParent GetKitchenObjectParent() {
         return kitchenObjectParent;
