@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class TutorialUI : MonoBehaviour {
@@ -19,16 +21,19 @@ public class TutorialUI : MonoBehaviour {
 
 
     private void Start() {
-        GameInput.Instance.OnBindingRebind += GameInput_OnBindingRebind;
-        KitchenGameManager.Instance.OnStateChanged += KitchenGameManager_OnStateChanged;
-
+        GameInput.Instance.OnBindingRebind += GameInput_OnBindingRebind;        
+        //State changed >>> Test if Localplayer is ready
+        KitchenGameManager.Instance.OnLocalPlayerReadyChanged += KitchenGameManager_OnLocalPlayerReadyChanged;
         UpdateVisual();
 
         Show();
     }
-
-    private void KitchenGameManager_OnStateChanged(object sender, System.EventArgs e) {
-        if (KitchenGameManager.Instance.IsCountdownToStartActive()) {
+    //We could just trigger the event when the player is ready but the bellow code is being setup incase we also want to add the option for the player to "UnReady"
+    //FutureProofing wew    
+    private void KitchenGameManager_OnLocalPlayerReadyChanged(object sender, EventArgs e)
+    {
+        if(  KitchenGameManager.Instance.IsLocalPlayerReady())
+        {
             Hide();
         }
     }
