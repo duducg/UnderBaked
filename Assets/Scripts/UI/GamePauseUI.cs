@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,6 +17,9 @@ public class GamePauseUI : MonoBehaviour {
             KitchenGameManager.Instance.TogglePauseGame();
         });
         mainMenuButton.onClick.AddListener(() => {
+            // If you quit the network should also disconnect.
+            //Otherwise the connect still runs...
+            NetworkManager.Singleton.Shutdown(); 
             Loader.Load(Loader.Scene.MainMenuScene);
         });
         optionsButton.onClick.AddListener(() => {

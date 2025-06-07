@@ -12,11 +12,11 @@ public class PauseMultiplayerUI : MonoBehaviour
 
     private void KitchenGameManager_OnMultiplayerGamePaused(object sender, EventArgs e)
     {
-        Hide();
+        Show();
     }
     private void KitchenGameManager_OnMultiplayerGameUnpaused(object sender, EventArgs e)
     {
-        Show();
+        Hide();
     }
 
     

@@ -39,6 +39,9 @@ public class KitchenGameManager : NetworkBehaviour {
     // Specially since it doesn't take into account disconnecting and connecting players out of order.
     private Dictionary<ulong, bool> playerReadyDictionary;
     private Dictionary<ulong, bool> playerPausedDictionary;
+    //A boolean to wait one frame before checking the clientlist for disconected players.
+    //It takes a sec to update:
+    private bool autoTestGamePausedState;
 
 
     private void Awake() {
@@ -55,8 +58,19 @@ public class KitchenGameManager : NetworkBehaviour {
     {
         state.OnValueChanged += State_OnValueChanged;
         isGamePaused.OnValueChanged += IsGamePaused_OnValueChanged;
+
+        //Listen for disconnects:
+        if (IsServer)
+        {
+            NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_OnClientDisconnectCallback;
+        }
+        
     }
 
+    private void NetworkManager_OnClientDisconnectCallback(ulong clientId)
+    {
+        autoTestGamePausedState = true;        
+    }
     private void IsGamePaused_OnValueChanged(bool previousValue, bool newValue)
     {
         if (isGamePaused.Value)
@@ -134,6 +148,14 @@ public class KitchenGameManager : NetworkBehaviour {
                 break;
             case State.GameOver:
                 break;
+        }
+    }
+    private void LateUpdate()
+    {
+        if (autoTestGamePausedState)
+        {
+            autoTestGamePausedState = false;
+            TestGamePausedState();
         }
     }
 

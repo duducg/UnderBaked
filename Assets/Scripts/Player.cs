@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using NUnit.Framework;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -61,6 +62,23 @@ public class Player : NetworkBehaviour, IKitchenObjectParent {
         transform.position = spawnPositionsList[(int)OwnerClientId];
         
         OnAnyPlayerSpawned?.Invoke(this, EventArgs.Empty);
+        //To know when a player disconnects:
+        //This callback is ran on the server and on the client that disconects.
+        //The most important listener is the server. We don't really care what happens to the disconecting client's game...
+        if (IsServer)
+        {
+            NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_OnClientDisconnectCallback;
+        }
+        
+    }
+
+    private void NetworkManager_OnClientDisconnectCallback(ulong clientId)
+    {
+        //If player was holding anything destroy that object on disconnect:
+        if(clientId == OwnerClientId || HasKitchenObject())
+        {
+            KitchenObject.DestroyKitchenObject(GetKitchenObject());
+        }
     }
 
     private void GameInput_OnInteractAction(object sender, System.EventArgs e) {
