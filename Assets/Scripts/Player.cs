@@ -247,4 +247,11 @@ public class Player : NetworkBehaviour, IKitchenObjectParent {
         return kitchenObject != null;
     }
 
+    //Player is already a networkBehavior so we can directly return it's NetworkObject instance like this:
+    public NetworkObject GetNetworkObject()
+    {
+        return NetworkObject;
+    }
+
+
 }
