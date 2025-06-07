@@ -63,11 +63,15 @@ public class KitchenObject : NetworkBehaviour {
     public IKitchenObjectParent GetKitchenObjectParent() {
         return kitchenObjectParent;
     }
-
-    public void DestroySelf() {
-        kitchenObjectParent.ClearKitchenObject();
-
+    //When NetworkObjects are destroyed make sure to also "unparent" them as well.
+    public void DestroySelf() 
+    {    
         Destroy(gameObject);
+    }
+    //Clear Parent:
+    public void ClearKitchenObjectOnParent()
+    {
+        kitchenObjectParent.ClearKitchenObject();
     }
 
     public bool TryGetPlate(out PlateKitchenObject plateKitchenObject) {
@@ -84,6 +88,10 @@ public class KitchenObject : NetworkBehaviour {
     //Changing to Passtrough function. Calls the RPC version on the KitchenGameMultiplayer Manager class
     public static void SpawnKitchenObject(KitchenObjectSO kitchenObjectSO, IKitchenObjectParent kitchenObjectParent) {
         KitchenGameMultiplayer.Instance.SpawnKitchenObject( kitchenObjectSO, kitchenObjectParent);        
+    }
+    public static void DestroyKitchenObject(KitchenObject kitchenObject)
+    {
+        KitchenGameMultiplayer.Instance.DestroyKitchenObject(kitchenObject);
     }
 
 }
