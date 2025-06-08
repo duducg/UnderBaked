@@ -5,10 +5,12 @@ using UnityEngine.SceneManagement;
 
 public class KitchenGameMultiplayer : NetworkBehaviour
 {
-    private const int MAX_PLAYER_AMOUNT = 4;
+    public const int MAX_PLAYER_AMOUNT = 4;
+    private const string PLAYER_PREFS_PLAYER_NAME_MULTIPLAYER = "PlayerNameMulitplayer";
     public static KitchenGameMultiplayer Instance { get; private set;}
     public event EventHandler OnTryingToJoinGame;
     public event EventHandler OnFailedToJoinGame;
+    private string playerName;
 
     [SerializeField] private KitchenObjectListSO kitchenObjectListSO;
 
@@ -16,6 +18,16 @@ public class KitchenGameMultiplayer : NetworkBehaviour
     {
         Instance  = this;
         DontDestroyOnLoad(this);
+        playerName = PlayerPrefs.GetString(PLAYER_PREFS_PLAYER_NAME_MULTIPLAYER,"PlayerName" + UnityEngine.Random.Range(100,1000));
+    }
+    public string GetPlayerName()
+    {
+        return playerName;
+    }
+    public void SetPlayerName(string newPlayerName)
+    {
+       playerName = newPlayerName;
+        PlayerPrefs.SetString(PLAYER_PREFS_PLAYER_NAME_MULTIPLAYER, playerName);
     }
     public void StartHost()
     {
@@ -54,6 +66,9 @@ public class KitchenGameMultiplayer : NetworkBehaviour
         NetworkManager.Singleton.OnClientDisconnectCallback += NetworkManager_OnClientDisconnectCallback;
         NetworkManager.Singleton.StartClient();
     }
+
+    
+
 
     private void NetworkManager_OnClientDisconnectCallback(ulong clientId)
     {
