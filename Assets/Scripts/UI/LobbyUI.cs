@@ -74,4 +74,11 @@ public class LobbyUI : MonoBehaviour
         UdpdateLobbyList(new List<Lobby>());
     }
 
+
+    private void OnDestroy()
+    {
+        KitchenGameLobby.Instance.OnLobbyListChanged -= KitchenGameLobby_OnLobbyListChanged;
+        
+    }
+    
 }
